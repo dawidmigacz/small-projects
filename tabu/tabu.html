@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="pl">
+<head>
+	<meta charset="ansi">
+	<title>Tabu</title>
+	<meta name="description" content="Tabu">
+	<meta name="author" content="Dawid Migacz">
+	<style>
+		.but 
+		{
+			background-color:#b405ff;
+			border-radius:10px;
+			border:1px solid #9900db;
+			display:inline-block;
+			cursor:pointer;
+			color:#ffffff;
+			font-family:Verdana;
+			font-size:17px;
+			padding-top:19px;
+			padding-bottom:19px;
+			text-decoration:none;
+			margin: 5px;
+		}
+		.clickable
+		{
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body style="font-family: Verdana; padding: 10px -moz-user-select: none; -webkit-user-select: none; -ms-user-select: none; user-select: none;">
+	<div id="welcome">Witaj w TABU! Osoba, która ma przekazaæ dru¿ynie swoje has³o klika przycisk "MOJA KOLEJ". Nie mo¿e u¿ywaæ wyrazów o takim samym temacie s³owotwórczym, jak którekolwiek ze s³ów na karcie. Przyk³adowo, jeœli na karcie jest s³owo "NAGRANIE", nie mo¿na u¿yæ s³owa "GIERKA". Autor: Dawid Migacz. Macie ró¿ne liczby dostêpnych kart? Naciœnijcie Shift+F5 (ewentualnie Ctrl+F5). </div><br><br>
+  <script src="cards.js"></script>
+  <script src="seedrandom.js"></script>
+  <script>
+	var nr = 0; 
+	var isRed= false;
+	var bs = 0;
+	var rs = 0;
+	var ref=false;
+	
+	
+	
+	function shuffle(a) 
+	{
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+    return a;
+	}
+	
+	function decipher(output)
+	{
+		var ret = "";
+		for(var i=0; i<output.length; i++)
+		if(output.charCodeAt(i)>64&&output.charCodeAt(i)<91)
+        {
+			ret=ret + String.fromCharCode((155-output.charCodeAt(i)));
+        }
+		else ret= ret + output.charAt(i);
+		return ret;
+	}
+	
+	function b(c)
+	{
+		bs=bs+c;
+		document.getElementById('bscore').innerHTML = bs;
+	}
+	
+	function r(c)
+	{
+		rs=rs+c;
+		document.getElementById('rscore').innerHTML = rs;
+	}
+	
+	function toggle() 
+	{
+		var x = document.getElementById("toggle");
+		if (x.innerHTML === "Zas³oñ kartê") 
+		{	//zaslanianie
+			x.innerHTML = "Ods³oñ kartê";
+			document.getElementById('word').style.display = "none";
+			document.getElementById('taboos').style.visibility = "hidden";	
+			document.getElementById('number').style.display = "block";	
+			document.getElementById('card').style.backgroundColor = "black";	
+			
+		} 
+		else //odslanianie
+		{
+			x.innerHTML = "Zas³oñ kartê";
+			document.getElementById('word').style.display = "block";
+			document.getElementById('taboos').style.visibility = "visible";	
+			document.getElementById('number').style.display = "none";
+			document.getElementById('card').style.backgroundColor = "inherit";
+		}
+	}
+  
+	function firstCard()
+	{
+		
+		nr = parseInt(document.getElementById('start').value);
+		Math.seedrandom(document.getElementById('seed').value);
+		console.log(Math.random());
+		shuffle(cards);
+		document.getElementById('card').style.display="inline-block";
+		document.getElementById('scores').style.display="block";
+		
+		document.getElementById('word').style.display = "none";
+		document.getElementById('welcome').style.display = "none";
+		document.getElementById('number').style.display = "block";
+		document.getElementById('taboos').style.visibility = "hidden";	
+		document.getElementById('card').style.backgroundColor = "black";	
+		
+		document.getElementById('startcontrols').style.display="none";
+		document.getElementById('next').style.display="inline-block";
+		document.getElementById('prev').style.display="inline-block";
+		document.getElementById('toggle').style.display="inline-block";
+		document.getElementById('myturn').style.display="inline-block";
+		document.getElementById('referee').style.display="inline-block";
+		if(document.getElementById('r').checked==true) 
+		{
+			document.body.style.backgroundColor = "#ffdddd";
+			isRed=true;
+		}
+		else document.body.style.backgroundColor = "#ddffff";
+		nextCard();
+	}
+	
+	function prevCard()
+	{
+		if(nr>1)
+		{
+			nr=nr-2;
+			nextCard();
+			document.getElementById('next').style.display="inline-block";
+		}
+	}
+	
+	function nextCard()
+	{
+		document.getElementById('word').innerHTML = decipher(cards[nr][0]);
+		document.getElementById('taboos').innerHTML = decipher(cards[nr][1]);
+		document.getElementById('number').innerHTML = nr;
+		document.getElementById('num').innerHTML = nr;
+		nr=nr+1;
+		if(nr>=cards.length)
+		{
+			document.getElementById('next').style.display="none";
+			document.getElementById('good').style.display="none";
+			document.getElementById('bad').style.display="none";
+		}
+	}
+	
+	function score(t)
+	{
+		if(ref==false)
+		{
+			if(isRed==true)rs=rs+t;
+			else bs=bs+t;
+		}
+		else
+		{
+			if(isRed==false)rs=rs+t;
+			else bs=bs+t;
+		}
+		document.getElementById('rscore').innerHTML = rs;
+		document.getElementById('bscore').innerHTML = bs;
+		nextCard();
+	}
+	var t = 0;
+	function timer()
+	{
+		document.getElementById('timer').style.display="block";
+		if(t>0)
+		{
+			document.getElementById("timer").innerHTML = t;
+			t--;
+			setTimeout("timer()",1000);
+		}
+		else
+		{
+		nextCard();
+		document.getElementById('timer').style.display="none";
+		document.getElementById("toggle").innerHTML = "Zas³oñ kartê";
+		toggle();
+		document.getElementById('next').style.display="inline-block";
+		document.getElementById('prev').style.display="inline-block";
+		document.getElementById('myturn').style.display="inline-block";
+		document.getElementById('referee').style.display="inline-block";
+		document.getElementById('toggle').style.display="inline-block";
+		document.getElementById('bplus').style.display="inline-block";
+		document.getElementById('bminus').style.display="inline-block";
+		document.getElementById('rplus').style.display="inline-block";
+		document.getElementById('rminus').style.display="inline-block";
+		document.getElementById('good').style.display="none";
+		document.getElementById('pass').style.display="none";
+		document.getElementById('bad').style.display="none";
+		ref=false;
+		}
+	}
+	
+	function referee()
+	{
+		document.getElementById("toggle").innerHTML = "Ods³oñ kartê";
+		toggle();
+		ref = true;
+		if(isRed==true)
+		document.getElementById('card').style.backgroundColor = "#dff";
+		else document.getElementById('card').style.backgroundColor = "#fdd";
+		document.getElementById('next').style.display="none";
+		document.getElementById('prev').style.display="none";
+		document.getElementById('myturn').style.display="none";
+		document.getElementById('referee').style.display="none";
+		document.getElementById('toggle').style.display="none";
+		document.getElementById('bplus').style.display="none";
+		document.getElementById('bminus').style.display="none";
+		document.getElementById('rplus').style.display="none";
+		document.getElementById('rminus').style.display="none";
+		document.getElementById('good').style.display="inline-block";
+		document.getElementById('pass').style.display="inline-block";
+		document.getElementById('bad').style.display="inline-block";
+		t = 63;
+		timer();
+	}
+	
+	function myTurn()
+	{
+		document.getElementById("toggle").innerHTML = "Ods³oñ kartê";
+		toggle();
+		document.getElementById('next').style.display="none";
+		document.getElementById('prev').style.display="none";
+		document.getElementById('myturn').style.display="none";
+		document.getElementById('referee').style.display="none";
+		document.getElementById('toggle').style.display="none";
+		document.getElementById('bplus').style.display="none";
+		document.getElementById('bminus').style.display="none";
+		document.getElementById('rplus').style.display="none";
+		document.getElementById('rminus').style.display="none";
+		document.getElementById('good').style.display="inline-block";
+		document.getElementById('pass').style.display="inline-block";
+		document.getElementById('bad').style.display="inline-block";
+		t = 60;
+		timer();
+	}
+  </script>
+<div style="display:block; margin-left: auto; margin-right:auto; width:350px;">
+  <div id="startcontrols" style ="display:inline-block; margin-left: 83px;" >
+	  <label for="fname">Nr karty pocz¹tkowej:</label><br>
+	  <input type="number" id="start" name="start" value=0 min=0 style="width:169px;" ><br>
+	  
+	  <label for="fname">Seed losowy:</label><br>
+	  <input type="text" id="seed" name="seed" ><br>
+	  <script>
+		document.getElementById('start').max=cards.length-1;
+		document.getElementById('seed').placeholder = "Liczba kart: " + cards.length;
+	  </script>
+	  <input type="radio" id="r" name="team" value="r" checked=true>
+	  <label for="r">Dru¿yna czerwona</label><br>
+	  <input type="radio" id="b" name="team" value="b" >
+	  <label for="b">Dru¿yna niebieska</label><br><br>
+	  <div class="but" style="width: 160px; text-align: center;" onclick="firstCard()"> Gramy! </div>
+	  <br><br> 
+  </div>
+  <div id="card" style = "border: 2px solid black; display: none; margin-top: 15px; margin-bottom: 15px; padding: 10px; border-radius:10px;" >
+  
+	  <div id="number" style="font-size: 27px; text-align: center; color: white; margin-bottom: 5px;">
+	  </div>
+	  <div id="word" style="font-size: 27px; text-align: center; margin-bottom: 5px;">
+	  </div>
+	  <div id="taboos" style="font-size: 21px; color: gray; text-align: center;">
+	  </div>
+	  <div id ="num" style="width:320px; font-size: 10px; "></div>
+  </div>
+  
+  <br>
+  <div class="but" id="toggle" onclick="toggle()" style="display: none; width: 340px; text-align: center;">Ods³oñ kartê</div>
+  <div class="but" id="good" onclick="score(1)" style="display: none; border-color: #2bef79; background-color: #3bff89; color: black; width: 340px; text-align: center;"> OK </div> 
+  <div class="but" id="bad" onclick="score(-1)" style="display: none; border-color: #e35300; background-color: #ff6105; width: 340px; text-align: center;"> TABU </div>
+  <div class="but" id="pass" onclick="score(0)" style="display: none; border-color: #aaa; background-color: #bbb; width: 340px; text-align: center;"> PASS </div>
+  <div class="but" id="prev" onclick="prevCard()" style="display: none; width: 160px; text-align: center;"> &lt; </div>
+  <div class="but" id="next" onclick="nextCard()" style="display: none; width: 160px; text-align: center;"> &gt; </div> <br> 
+  <div class="but" id="myturn" onclick="myTurn()" style="display: none; width: 340px; text-align: center;"> MOJA KOLEJ! </div> <br> 
+  <div class="but" id="referee" onclick="referee()" style="display: none; width: 340px; text-align: center;"> SÊDZIUJÊ! </div> 
+  
+  <br><br> 
+  <div id="scores" style="display: none;" >
+	<div id="red" style=" float:left;  color: white; margin-right: 10px;  margin-left: 84px">
+		<div id="rscore" style=" clear: both; line-height: 80px; background-color: red; height: 80px; width: 82px; border: 1px solid #b00; text-align: center; border-top-left-radius: 10px; border-top-right-radius: 10px">0</div>
+		<div id="rplus" class="clickable" onclick="r(1)" style=" float:left; background-color: red; line-height: 40px;  height: 40px; width: 40px; border: 1px solid #b00; text-align: center; border-bottom-left-radius: 10px;">+</div>
+		<div id="rminus" onclick="r(-1)" class="clickable" style=" background-color: red; float:left; line-height: 40px;  height: 40px; width: 40px; border: 1px solid #b00; text-align: center; border-bottom-right-radius: 10px;">-</div>
+		
+	</div>
+	<div id="blue" style=" float:left;  color: white;  ">
+		<div id="bscore" style=" clear: both; line-height: 80px; background-color: blue;  height: 80px; width: 82px; border: 1px solid #22f; text-align: center; border-top-left-radius: 10px; border-top-right-radius: 10px">0</div>
+		<div id="bplus" class="clickable" onclick="b(1)" style=" background-color: blue; float:left; line-height: 40px;  height: 40px; width: 40px; border: 1px solid #22f; text-align: center; border-bottom-left-radius: 10px;">+</div>
+		<div id="bminus" class="clickable" onclick="b(-1)" style=" background-color: blue; float:left; line-height: 40px;  height: 40px; width: 40px; border: 1px solid #22f; text-align: center; border-bottom-right-radius: 10px; ">-</div>
+	</div>
+  </div>
+  <br><br>
+  <div id="timer" style="clear:both; display: none; font-size: 40px; width:176px; text-align: center; border: 1px solid black; margin-left:84px; background-color: black; color: white; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px">40</div>
+</div>
+  
+</body>
+</html>
